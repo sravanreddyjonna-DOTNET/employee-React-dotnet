@@ -1,0 +1,18 @@
+@EmployeeApi.Api_HostAddress = https://localhost:5001
+
+### Get all employees
+GET {{EmployeeApi.Api_HostAddress}}/api/employees
+Accept: application/json
+
+### Create an employee
+POST {{EmployeeApi.Api_HostAddress}}/api/employees
+Content-Type: application/json
+
+{
+  "name": "Jane Doe",
+  "salary": 65000,
+  "dept": "IT"
+}
+
+### Delete an employee (replace 1 with a real id)
+DELETE {{EmployeeApi.Api_HostAddress}}/api/employees/1
