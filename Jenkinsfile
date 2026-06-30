@@ -62,7 +62,7 @@ pipeline {
 
         stage('Docker Push') {
             when {
-                branch 'Main'
+                expression { env.GIT_BRANCH == 'origin/Main' }
             }
             steps {
                 withCredentials([usernamePassword(
