@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE       = 'your-dockerhub-username/employee-api'
+        DOCKER_IMAGE       = 'sravanreddy98/employee-api'
         DOCKER_TAG         = "${env.BUILD_NUMBER}"
         DOCKER_LATEST_TAG  = 'latest'
         DOCKER_CREDENTIALS = 'dockerhub-credentials'
