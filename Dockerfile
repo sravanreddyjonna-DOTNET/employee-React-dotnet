@@ -2,7 +2,10 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy solution + project files first so restore is cached separately from source
+# Copy NuGet config first — clears Windows fallback package folders
+COPY NuGet.Config ./
+
+# Copy solution + project files so restore layer is cached separately from source
 COPY EmployeeApi.sln ./
 COPY src/EmployeeApi.Domain/EmployeeApi.Domain.csproj             src/EmployeeApi.Domain/
 COPY src/EmployeeApi.Application/EmployeeApi.Application.csproj   src/EmployeeApi.Application/
@@ -15,7 +18,6 @@ RUN dotnet restore
 COPY . .
 RUN dotnet publish src/EmployeeApi.Api/EmployeeApi.Api.csproj \
     --configuration Release \
-    --no-restore \
     --output /app/publish
 
 # Stage 2 — Runtime: lean ASP.NET image, no SDK
