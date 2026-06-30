@@ -66,14 +66,15 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: "${DOCKER_CREDENTIALS}",
+                    credentialsId: 'dockerhub-credentials',
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
-                    bat """
-                        echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin
-                        docker push %DOCKER_IMAGE%:%DOCKER_TAG%
-                        docker push %DOCKER_IMAGE%:%DOCKER_LATEST_TAG%
+                    powershell """
+                        \$ErrorActionPreference = 'Stop'
+                        \$env:DOCKER_PASS | docker login -u \$env:DOCKER_USER --password-stdin
+                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                        docker push ${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}
                     """
                 }
             }
