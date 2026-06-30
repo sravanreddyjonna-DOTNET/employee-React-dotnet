@@ -32,13 +32,14 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    // Check if any test projects exist (Windows dir command)
-                    def testFiles = bat(
+                    // returnStatus: true means exit code 0 = found, non-zero = not found
+                    // Never fails the pipeline just because no test projects exist yet
+                    def found = bat(
                         script: '@dir /s /b *Tests.csproj *Test.csproj 2>nul',
-                        returnStdout: true
-                    ).trim()
+                        returnStatus: true
+                    )
 
-                    if (testFiles) {
+                    if (found == 0) {
                         bat 'dotnet test EmployeeApi.sln --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"'
                         junit '**/test-results.trx'
                     } else {
