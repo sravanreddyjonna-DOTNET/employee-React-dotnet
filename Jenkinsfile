@@ -72,9 +72,20 @@ pipeline {
                 )]) {
                     powershell """
                         \$ErrorActionPreference = 'Stop'
-                        \$env:DOCKER_PASS | docker login -u \$env:DOCKER_USER --password-stdin
-                        docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                        docker push ${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}
+
+                        # Use a temp Docker config dir to bypass Docker Desktop
+                        # credential helper (docker-credential-desktop) which
+                        # conflicts when Jenkins runs as LocalSystem
+                        \$env:DOCKER_CONFIG = "\$env:WORKSPACE\\.docker-tmp"
+                        New-Item -ItemType Directory -Force -Path \$env:DOCKER_CONFIG | Out-Null
+
+                        try {
+                            \$env:DOCKER_PASS | docker login -u \$env:DOCKER_USER --password-stdin
+                            docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
+                            docker push ${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}
+                        } finally {
+                            Remove-Item -Recurse -Force \$env:DOCKER_CONFIG -ErrorAction SilentlyContinue
+                        }
                     """
                 }
             }
