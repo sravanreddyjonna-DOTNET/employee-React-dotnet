@@ -5,6 +5,8 @@ pipeline {
         DOCKER_IMAGE      = 'sravanreddy98/employee-api'
         DOCKER_TAG        = "${env.BUILD_NUMBER}"
         DOCKER_LATEST_TAG = 'latest'
+        SONAR_HOST_URL    = 'http://localhost:9000'
+        SONAR_PROJECT_KEY = 'employee-api'
     }
 
     stages {
@@ -24,10 +26,24 @@ pipeline {
             }
         }
 
-        // ─── Stage 3: Build ─────────────────────────────────────────────
-        stage('Build') {
+        // ─── Stage 3: SonarQube Analysis + Build ───────────────────────
+        // SonarScanner wraps the build: begin → build → end
+        stage('SonarQube Analysis') {
             steps {
-                bat 'dotnet build EmployeeApi.sln --configuration Release --no-restore'
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    bat """
+                        dotnet-sonarscanner begin ^
+                            /k:"%SONAR_PROJECT_KEY%" ^
+                            /d:sonar.host.url="%SONAR_HOST_URL%" ^
+                            /d:sonar.token="%SONAR_TOKEN%" ^
+                            /d:sonar.scm.disabled=true
+
+                        dotnet build EmployeeApi.sln --configuration Release --no-restore
+
+                        dotnet-sonarscanner end ^
+                            /d:sonar.token="%SONAR_TOKEN%"
+                    """
+                }
             }
         }
 
@@ -62,9 +78,6 @@ pipeline {
         }
 
         // ─── Stage 6: Docker Push ───────────────────────────────────────
-        // FIX 1: Removed the "when" block — it was silently skipping this
-        //        stage every time because env.GIT_BRANCH is unreliable in
-        //        a standard Pipeline job. Add it back once push is working.
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
@@ -75,33 +88,18 @@ pipeline {
                     powershell """
                         \$ErrorActionPreference = 'Stop'
 
-                        # Bypass Docker Desktop credential helper
-                        # (docker-credential-desktop conflicts with Jenkins
-                        # running as LocalSystem on Windows)
                         \$env:DOCKER_CONFIG = "\$env:WORKSPACE\\.docker-tmp"
                         New-Item -ItemType Directory -Force -Path \$env:DOCKER_CONFIG | Out-Null
 
                         try {
-                            # FIX 2: Use -p flag directly instead of pipe.
-                            # PowerShell pipes send .NET objects not raw bytes,
-                            # which breaks --password-stdin silently.
                             docker login -u \$env:DOCKER_USER -p \$env:DOCKER_PASS
-
-                            # FIX 3: Check exit code — don't push if login failed
-                            if (\$LASTEXITCODE -ne 0) {
-                                throw "Docker login failed (exit code \$LASTEXITCODE)"
-                            }
-                            Write-Host "Login succeeded"
+                            if (\$LASTEXITCODE -ne 0) { throw "Docker login failed" }
 
                             docker push ${DOCKER_IMAGE}:${DOCKER_TAG}
-                            if (\$LASTEXITCODE -ne 0) {
-                                throw "docker push tag failed (exit code \$LASTEXITCODE)"
-                            }
+                            if (\$LASTEXITCODE -ne 0) { throw "docker push tag failed" }
 
                             docker push ${DOCKER_IMAGE}:${DOCKER_LATEST_TAG}
-                            if (\$LASTEXITCODE -ne 0) {
-                                throw "docker push latest failed (exit code \$LASTEXITCODE)"
-                            }
+                            if (\$LASTEXITCODE -ne 0) { throw "docker push latest failed" }
 
                             Write-Host "Successfully pushed ${DOCKER_IMAGE}:${DOCKER_TAG}"
                         }
@@ -117,7 +115,6 @@ pipeline {
 
     post {
         always {
-            // Clean up local images after push to save disk space
             bat """
                 docker rmi %DOCKER_IMAGE%:%DOCKER_TAG% 2>nul || exit /b 0
                 docker rmi %DOCKER_IMAGE%:%DOCKER_LATEST_TAG% 2>nul || exit /b 0
