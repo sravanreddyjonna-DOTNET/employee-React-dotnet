@@ -22,6 +22,7 @@ pipeline {
         // ─── Stage 2: Restore packages ─────────────────────────────────
         stage('Restore') {
             steps {
+                bat 'dotnet tool restore'
                 bat 'dotnet restore EmployeeApi.sln'
             }
         }
@@ -32,7 +33,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     bat """
-                        dotnet-sonarscanner begin ^
+                        dotnet tool run dotnet-sonarscanner begin ^
                             /k:"%SONAR_PROJECT_KEY%" ^
                             /d:sonar.host.url="%SONAR_HOST_URL%" ^
                             /d:sonar.token="%SONAR_TOKEN%" ^
@@ -40,7 +41,7 @@ pipeline {
 
                         dotnet build EmployeeApi.sln --configuration Release --no-restore
 
-                        dotnet-sonarscanner end ^
+                        dotnet tool run dotnet-sonarscanner end ^
                             /d:sonar.token="%SONAR_TOKEN%"
                     """
                 }

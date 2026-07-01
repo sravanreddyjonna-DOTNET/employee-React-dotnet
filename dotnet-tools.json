@@ -2,10 +2,10 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "dotnet-ef": {
-      "version": "8.0.28",
+    "dotnet-sonarscanner": {
+      "version": "11.2.1",
       "commands": [
-        "dotnet-ef"
+        "dotnet-sonarscanner"
       ],
       "rollForward": false
     }
