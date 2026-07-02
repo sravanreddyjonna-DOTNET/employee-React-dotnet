@@ -5,7 +5,7 @@ pipeline {
         DOCKER_IMAGE      = 'sravanreddy98/employee-api'
         DOCKER_TAG        = "${env.BUILD_NUMBER}"
         DOCKER_LATEST_TAG = 'latest'
-        SONAR_HOST_URL    = 'http://localhost:9000'
+        SONAR_HOST_URL    = 'http://192.168.83.130:9000'
         SONAR_PROJECT_KEY = 'employee-api'
     }
 
