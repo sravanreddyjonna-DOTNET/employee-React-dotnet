@@ -112,6 +112,18 @@ pipeline {
                 }
             }
         }
+
+        // ─── Stage 7: Deploy to Kubernetes ─────────────────────────────
+        stage('Deploy to K8s') {
+            steps {
+                sshagent(credentials: ['k8s-vm-ssh']) {
+                    bat """
+                        ssh -o StrictHostKeyChecking=no root@192.168.83.130 ^
+                            "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && kubectl set image deployment/employee-api employee-api=%DOCKER_IMAGE%:%DOCKER_TAG% -n employee-api && kubectl rollout status deployment/employee-api -n employee-api --timeout=120s"
+                    """
+                }
+            }
+        }
     }
 
     post {
