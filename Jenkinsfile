@@ -125,10 +125,9 @@ pipeline {
                         \$ErrorActionPreference = 'Stop'
                         \$keyFile = "\$env:TEMP\\jenkins_k8s_\$env:BUILD_NUMBER.pem"
                         Copy-Item \$env:SSH_KEY_FILE \$keyFile
-                        icacls \$keyFile /inheritance:r /grant:r "\$env:USERNAME:R" | Out-Null
+                        icacls \$keyFile /inheritance:r /grant "\$env:USERNAME:(R)" | Out-Null
                         try {
-                            ssh -i \$keyFile -o StrictHostKeyChecking=no root@192.168.83.130 `
-                                "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && kubectl set image deployment/employee-api employee-api=${DOCKER_IMAGE}:${DOCKER_TAG} -n employee-api && kubectl rollout status deployment/employee-api -n employee-api --timeout=120s"
+                            ssh -i \$keyFile -o StrictHostKeyChecking=no root@192.168.83.130 "export KUBECONFIG=/etc/rancher/k3s/k3s.yaml && kubectl set image deployment/employee-api employee-api=${DOCKER_IMAGE}:${DOCKER_TAG} -n employee-api && kubectl rollout status deployment/employee-api -n employee-api --timeout=120s"
                             if (\$LASTEXITCODE -ne 0) { throw "Deployment failed" }
                         } finally {
                             Remove-Item \$keyFile -ErrorAction SilentlyContinue
