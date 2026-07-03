@@ -126,7 +126,7 @@ pipeline {
                         \$keyFile = "\$env:TEMP\\jenkins_k8s_\$env:BUILD_NUMBER.pem"
                         Copy-Item \$env:SSH_KEY_FILE \$keyFile
                         try {
-                            ssh -i \$keyFile -o StrictHostKeyChecking=no -o ConnectTimeout=30 -o StrictModes=no root@192.168.83.130 "KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/kubectl rollout restart deployment/employee-api -n employee-api"
+                            ssh -i \$keyFile -o StrictHostKeyChecking=no -o ConnectTimeout=30 root@192.168.83.130 "KUBECONFIG=/etc/rancher/k3s/k3s.yaml /usr/local/bin/kubectl rollout restart deployment/employee-api -n employee-api"
                             if (\$LASTEXITCODE -ne 0) { throw "Deployment failed" }
                             Write-Host "Deployment triggered for ${DOCKER_IMAGE}:${DOCKER_TAG}"
                         } finally {
