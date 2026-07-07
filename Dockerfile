@@ -11,7 +11,7 @@ COPY src/EmployeeApi.Domain/EmployeeApi.Domain.csproj             src/EmployeeAp
 COPY src/EmployeeApi.Application/EmployeeApi.Application.csproj   src/EmployeeApi.Application/
 COPY src/EmployeeApi.Infrastructure/EmployeeApi.Infrastructure.csproj src/EmployeeApi.Infrastructure/
 COPY src/EmployeeApi.Api/EmployeeApi.Api.csproj                   src/EmployeeApi.Api/
-COPY test/EmployeeApi.Tests/EmployeeApi.Tests.csproj              test/EmployeeApi.Tests
+COPY tests/EmployeeApi.Tests/EmployeeApi.Tests.csproj              tests/EmployeeApi.Tests
 
 RUN dotnet restore
 
