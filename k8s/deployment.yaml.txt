@@ -1,0 +1,4 @@
+containers:
+- name: employee-api
+  image: sravanreddyjonna/employee-api:latest
+  imagePullPolicy: Always   # <-- change this too, since it's no longer local-only
